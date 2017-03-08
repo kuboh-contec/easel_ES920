@@ -69,6 +69,9 @@
 
 static EASEL920PARAM param;
 
+struct timeval myTime;
+struct tm *time_st;
+
 
 /**
 	@~English
@@ -292,82 +295,82 @@ int easel_ES920_set_node( int command ){
 
 int easel_ES920_set_bw(int command)
 {
-	return _easel_es920_send_recv("bw ", command);
+	return _easel_es920_send_recv("bw", command);
 }
 
 int easel_ES920_set_sf(int command)
 {
-	return _easel_es920_send_recv("sf ", command);
+	return _easel_es920_send_recv("sf", command);
 }
 
 int easel_ES920_set_ch(int command)
 {
-	return _easel_es920_send_recv("channel ", command);
+	return _easel_es920_send_recv("channel", command);
 }
 
 int easel_ES920_set_panid(int command)
 {
-	return _easel_es920_send_recv("panid ", command);
+	return _easel_es920_send_recv("panid", command);
 }
 
 int easel_ES920_set_ownid(int command)
 {
-	return _easel_es920_send_recv("ownid ", command);
+	return _easel_es920_send_recv("ownid", command);
 }
 
 int easel_ES920_set_dstid(int command)
 {
-	return _easel_es920_send_recv("dstid ", command);
+	return _easel_es920_send_recv("dstid", command);
 }
 
 int easel_ES920_set_acksw(int command)
 {
-	return _easel_es920_send_recv("ack ", command);
+	return _easel_es920_send_recv("ack", command);
 }
 
 int easel_ES920_set_ackRetryNum(int command)
 {
-	return _easel_es920_send_recv("retry ", command);
+	return _easel_es920_send_recv("retry", command);
 }
 
 int easel_ES920_set_trmode(int command)
 {
-	return _easel_es920_send_recv("transmode ", command);
+	return _easel_es920_send_recv("transmode", command);
 }
 
 int easel_ES920_set_rcvsw(int command)
 {
-	return _easel_es920_send_recv("rcvid ", command);
+	return _easel_es920_send_recv("rcvid", command);
 }
 
 int easel_ES920_set_rssisw(int command)
 {
-	return _easel_es920_send_recv("rssi ", command);
+	return _easel_es920_send_recv("rssi", command);
 }
 
 int easel_ES920_set_opmode(int command)
 {
-	return _easel_es920_send_recv("operation ", command);
+	return _easel_es920_send_recv("operation", command);
 }
 
 int easel_ES920_set_brate(int command)
 {
-	return _easel_es920_send_recv("baudrate ", command);
+	return _easel_es920_send_recv("baudrate", command);
 }
 
 int easel_ES920_set_slepsw(int command)
 {
-	return _easel_es920_send_recv("sleep ", command);
+	return _easel_es920_send_recv("sleep", command);
 }
 
 int easel_ES920_set_slept(int command)
 {
-	return _easel_es920_send_recv("sleeptime ", command);
+	return _easel_es920_send_recv("sleeptime", command);
 }
 
 int easel_ES920_set_outpw(int command)
 {
-	return _easel_es920_send_recv("power ", command);
+	return _easel_es920_send_recv("power", command);
 }
 
 
@@ -536,7 +539,7 @@ int SendTelegram(unsigned char *buf)
 		Data[count] = buf[count];	
 	}
 
-	length = sizeof(Data);
+	length = strlen(Data);
 
 	//send the format
 	//tcflush( param.SerialPort, TCIFLUSH );
@@ -544,12 +547,21 @@ int SendTelegram(unsigned char *buf)
 	if(iRet<0) return -1;
 
 	printf("===========SendTele=======================\n");
-
 	printf("Data\n");
-	for( count = 0; count < length; count++ ) printf("%d",Data[count]);
+	for( count = 0; count < length; count++ ) printf("%02x ",Data[count]);
 	printf("\n");
+	
+	gettimeofday(&myTime,NULL);
+	time_st = localtime(&myTime.tv_sec);
+	printf("TIME:%02d:%02d:%02d.%06d\n",
+				time_st->tm_hour,
+				time_st->tm_min,
+				time_st->tm_sec,
+				myTime.tv_usec
+	      );
 
-	//DbgPrint("<SendTelegram> Port %x, ret %d, Data %s\n",param.SerialPort,iRet,Data);
+
+	DbgPrint("<SendTelegram> Port %x, ret %d, Data %s\n",param.SerialPort,iRet,Data);
 
 	return iRet;
 }
@@ -614,26 +626,34 @@ int RecvTelegram(unsigned char *buf)
 	ioctl( param.SerialPort, FIONREAD, &readlen );
 	if(readlen == 0) return 0;
 
-	ioctl(param.SerialPort, FIONREAD, &readlen);
-
 	while(1){
 		bef_readlen=readlen;
 		usleep(100*1000);
 		ioctl(param.SerialPort,FIONREAD,&readlen);
 		if(bef_readlen==readlen) break;
 	}	
-	if(readlen==0) return 0;
+	//if(readlen==0) return 0;
 
 	for(count=0;count < readlen;count++){
 		Data[count] = Serial_GetChar(param.SerialPort);
 	}
 
-
 	DbgPrintRecvTelegram("===========RecvTele=======================\n");
 	DbgPrintRecvTelegram("Data\n");
 	for(count=0;count < readlen;count++)
 		DbgPrintRecvTelegram("%02x ",Data[count]);
+	
 	DbgPrintRecvTelegram("\n");
+
+	gettimeofday(&myTime,NULL);
+	time_st = localtime(&myTime.tv_sec);
+	printf("TIME:%02d:%02d:%02d.%06d\n",
+				time_st->tm_hour,
+				time_st->tm_min,
+				time_st->tm_sec,
+				myTime.tv_usec
+	      );
+
 
 	//Serial_GetChar(param.SerialPort);
 
@@ -698,16 +718,15 @@ int RecvTelegram(unsigned char *buf)
 int SendCommand(char buf[], int command )
 {
 	int iRet=0;
-	char *Data;
+	char Data[15] = {0};
 	int length;
 
 
 	//make the format	
-	Data = (char *)malloc( sizeof(char) * 50 );
+	//Data = (char *)malloc( sizeof(char) * 15 );
+	//if( Data == (char*) NULL ) return -1;
 
-	if( Data == (char*) NULL ) return -1;
-
-	if( sizeof( buf ) == 0 ){
+	if( strlen( buf ) == 0 ){
 		DbgPrint("--- Processoer Mode ----\n");
 		sprintf(Data,"%d\r\n",command);
 	}
@@ -726,7 +745,7 @@ int SendCommand(char buf[], int command )
 		}
 	}
 
-	length = sizeof(Data);
+	length = strlen(Data);
 
 	//send the format
 	tcflush( param.SerialPort, TCIFLUSH );
@@ -735,7 +754,7 @@ int SendCommand(char buf[], int command )
 
 	DbgPrint("<SendCommand> Port %x, buf %s, command %d, ret %d\n",param.SerialPort, buf, command,iRet);
 
-	free(Data);
+	//free(Data);
 	return iRet;
 }
 

@@ -50,13 +50,16 @@
 /// @}
 
 static int iPort2;
+struct timeval myTime;
+struct tm *time_st;
+
 
 int rs232c_init(char* PortName){
 
 	int iBaudrate = 19200;
 	int iLength = 8;
 	int iStop = 1;
-	int iParity = 1;
+	int iParity = 2;
 	int iFlow=0;
 
 	iPort2 = Serial_PortOpen_Full(
@@ -90,6 +93,7 @@ int RecvRS232C(unsigned char *buf)
 {
 	int iRet = 0;
 	int length;
+	int bef_readlen=0;
 	//unsigned char Data[50]={0};
 	int readlen = 0;
 	int count;
@@ -97,19 +101,31 @@ int RecvRS232C(unsigned char *buf)
 	//get the data length(headder + response data) 
 	ioctl( iPort2, FIONREAD, &readlen );
 	if(readlen==0) return 0;
+	
+	while(1){
+		bef_readlen=readlen;
+		usleep(100*1000);
+		ioctl(iPort2,FIONREAD,&readlen);
+		if(bef_readlen==readlen) break;
+	}
 
 	for(count=0;count<readlen;count++){
 		buf[count] = Serial_GetChar(iPort2);
-		//if(readchar == 0xFF) break;
-		//if(readchar == '\n') break;
-		//usleep(100);
 	}
 	
 	printf("=====RecvRS232C==================\n");
 	int i;
-	for(i=0;i<readlen;i++) printf("%d",buf[i]);
+	for(i=0;i<readlen;i++) printf("%02x ",buf[i]);
 	printf("\n");
 
+	gettimeofday(&myTime,NULL);
+	time_st = localtime(&myTime.tv_sec);
+	printf("TIME:%02d:%02d:%02d.%06d\n",
+				time_st->tm_hour,
+				time_st->tm_min,
+				time_st->tm_sec,
+				myTime.tv_usec
+	      );
 
 	//memcpy(buf, buf, (strlen(buf)-2) * sizeof(unsigned char));
 	DbgPrint("<RecvRS232C> Port %d buf %s res %d\n",iPort2,buf,iRet);
@@ -138,12 +154,19 @@ int SendRS232C(unsigned char *buf)
 
 	printf("==========SendRS232C========================\n");
 	int i;
-	for(i=0;i<strlen(buf);i++) printf("%d",buf[i]);
+	for(i=0;i<strlen(buf);i++) printf("%02x ",buf[i]);
 	printf("\n");
-
+		
+	gettimeofday(&myTime,NULL);
+	time_st = localtime(&myTime.tv_sec);
+	printf("TIME:%02d:%02d:%02d.%06d\n",
+				time_st->tm_hour,
+				time_st->tm_min,
+				time_st->tm_sec,
+				myTime.tv_usec
+	      );
 
 	DbgPrint("<SendRS232C> Port %d  buf %s res %d\n",iPort2,buf,iRet);
-
 
 	return 0;
 }
