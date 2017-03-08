@@ -44,7 +44,7 @@ int easel_ES920_set_wireless_default(void)
 			0,			//Ownid : 0x0001
 			1,			//Dstid : 0x0000
 			EASEL_ES920_ACK_ON,  	 
-			10,			//Rettry: 3
+			3,			//Rettry: 3
 			EASEL_ES920_TRASMOD_PAY,
 			EASEL_ES920_RCVID_ON,	
 			EASEL_ES920_RSSI_ON,

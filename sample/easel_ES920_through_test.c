@@ -57,11 +57,19 @@ int main(int argc, char **argv)
 	long iCnt = 1;
 	long Retrycnt = 20;
 	int iWait = 700;
-	unsigned short myId = 0x0;
-	unsigned short myAddr = 0x0;
-	unsigned short dstAddr = 0x1;
-	int leng;
-	int rxp;
+	int qnode=1;	
+	char *qbw="125k";
+	int qsf=7;
+	int qch=1;
+	unsigned int qpan=0x01;
+	unsigned int qown=0x01;
+	unsigned int qdst=0x00;
+	int qack=1;
+	int qret=3;
+	int qbaud=115200;
+	int qslep=1;
+	int qsleptm=50;
+	int qpwr=13;
 
 	BYTE multi64bitAddr[8]={0};
 
@@ -88,18 +96,25 @@ int main(int argc, char **argv)
 					printf(" -w[Wait(ms)]\n");
 					printf(" -h[hop mode]\n");
 					printf(" -q[920MHz Option]\n");
-					printf("    -qb[baudrate]\n");
+					printf("    -qa[node]\n");
+					printf("    -qb[bandwidth]\n");
+					printf("    -qc[sf]\n");
+					printf("    -qd[channel]\n");
+					printf("    -qe[panid]\n");
+					printf("    -qf[ownid]\n");
+					printf("    -qg[dstid]\n");
+					printf("    -ql[ack]\n");
+					printf("    -qm[retly]\n");
+					printf("    -qr[baudrate]\n");
+					printf("    -qs[sleep]\n");
+					printf("    -qt[sleeptime]\n");
+					printf("    -qu[power]\n");
+					printf("    -qu[power]\n");
 					printf("Usage:\n");
 					printf("Antenna type internal [0] external [1]\n");
 					printf("infinite loop [-1]\n");
 					return 0;
 				}
-				// Antenna
-				//if(strncmp(argv[i], "-a", strlen("-a")) == 0){
-				//	if(sscanf(argv[i], "-a%d", &Antenna) != 1){
-				//		ret = -1;
-				//	}
-				//}
 
 				// Cnt
 				if(strncmp(argv[i], "-c", strlen("-c")) == 0){
@@ -128,20 +143,110 @@ int main(int argc, char **argv)
 						strcpy(cMsg, &argv[i][2]);
 					}
 				}
+				
+				//920MHz Parameter settings 
+				if(strncmp(argv[i], "-q", strlen("-q")) == 0){
 
-				i++;
-			}
-			if(ret){
-				printf("param error\n");
-				return ret;
-			}
+					//node 
+					if(strncmp(argv[i], "-qa", strlen("-qa")) == 0){
+				 		if(sscanf(argv[i], "-qa%d", &qnode) != 1){
+							ret = -1;
+						}
+					}
+					
+					//bandwidth
+					if(strncmp(argv[i], "-qb", strlen("-qb")) == 0){
+						if(sscanf(argv[i], "-qb%s", qbw) != 1){
+							ret = -1;
+						}
+					}
+
+					//sf
+					if(strncmp(argv[i], "-qc", strlen("-qc")) == 0){
+						if(sscanf(argv[i], "-qc%d", &qsf) != 1){
+							ret = -1;
+						}
+					}
+						
+					if(strncmp(argv[i], "-qd", strlen("-qd")) == 0){
+						if(sscanf(argv[i], "-qd%d", &qch) != 1){
+							ret = -1;
+						}
+
+					}
+
+					if(strncmp(argv[i], "-qe", strlen("-qe")) == 0){
+						if(sscanf(argv[i], "-qe%d", &qpan) != 1){
+							ret = -1;
+						}
+
+					}
+					
+					if(strncmp(argv[i], "-qf", strlen("-qf")) == 0){
+						if(sscanf(argv[i], "-qf%d", &qown) != 1){
+							ret = -1;
+						}
+					}
+					
+					if(strncmp(argv[i], "-qg", strlen("-qg")) == 0){
+						if(sscanf(argv[i], "-qg%d", &qdst) != 1){
+							ret = -1;
+						}
+					}
+					
+					if(strncmp(argv[i], "-ql", strlen("-ql")) == 0){
+						if(sscanf(argv[i], "-ql%d", &qack) != 1){
+							ret = -1;
+						}
+					}
+					
+					if(strncmp(argv[i], "-qm", strlen("-qm")) == 0){
+						if(sscanf(argv[i], "-qi%d", &qret) != 1){
+							ret = -1;
+						}
+					}
+					
+					if(strncmp(argv[i], "-qr", strlen("-qr")) == 0){
+						if(sscanf(argv[i], "-qr%d", &qbaud) != 1){
+							ret = -1;
+						}
+					}	
+
+					if(strncmp(argv[i], "-qs", strlen("-qs")) == 0){
+						if(sscanf(argv[i], "-qs%d", &qslep) != 1){
+							ret = -1;
+						}
+					}
+					
+					if(strncmp(argv[i], "-qt", strlen("-qt")) == 0){
+						if(sscanf(argv[i], "-qt%d", &qsleptm) != 1){
+							ret = -1;
+						}
+					}
+
+					if(strncmp(argv[i], "-qu", strlen("-qu")) == 0){
+						if(sscanf(argv[i], "-qu%d", &qpwr) != 1){
+							ret = -1;
+						}
+					}
+				}
+
+			}	
+
+			i++;
+		}
+		if(ret){
+			printf("param error\n");
+			return ret;
 		}
 	}
+
+	
 	
 	printf("Wait = %dms Cnt = %ld\n", iWait, iCnt);
 
 	//Initialization 
-	iRet = easel_ES920_init(DevName1);
+	iRet = easel_ES920_init(DevName1,qbaud);
 	if( iRet ){
 		printf("DevName1: open error\n");
 		return 1;
@@ -154,7 +259,6 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	
-
 	// 空読み
 	//(void)Serial_GetString(iPort, cRecv, sizeof(cRecv));
 
@@ -174,17 +278,18 @@ int main(int argc, char **argv)
 		iRet = easel_ES920_exit();
 		return 0;
 	}
-/*
+
+/*	// Easel defaut Settings 
 	easel_es920_set_wireless(
 			EASEL_ES920_NODE_END, 	
 			EASEL_ES920_BW_125K, 	
 			EASEL_ES920_SF7,	
 			1,			//Channel: 1
 			1,			//Panid : 0x0001
-			1,			//Ownid : 0x0001
-			0,			//Dstid : 0x0000
+			0,			//Ownid : 0x0001
+			1,			//Dstid : 0x0000
 			EASEL_ES920_ACK_ON,  	//1 
-			3,			//Rettry: 3
+			10,			//Rettry: 3
 			EASEL_ES920_TRASMOD_PAY,//
 			EASEL_ES920_RCVID_ON,	
 			EASEL_ES920_RSSI_ON,
