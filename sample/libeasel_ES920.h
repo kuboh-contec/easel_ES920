@@ -65,7 +65,7 @@ typedef unsigned long DWORD,*LPDWORD;
 #define EASEL_ES920_SLEEP_TIME 2 	//Sleep Mode:	Timer Wakeup 
 #define EASEL_ES920_SLEEP_INT  3	//Sleep Mode:	INT Wakeup 
 
-
+/*
 typedef struct __conexioCMM920_packet{
 	BYTE dle;		///< DLE
 	BYTE stx;		///< STX
@@ -77,7 +77,7 @@ typedef struct __conexioCMM920_packet{
 	BYTE sum;	///< check sum
 	BYTE etx;	///< ETX
 } CONEXIO920PACKET, *PCONEXIO920PACKET;
-
+*/
 
 typedef struct __easelES920_param{
 	int node;	///< 
@@ -102,7 +102,8 @@ typedef struct __easelES920_param{
 
 //Function
 extern int _easel_es920_send_recv(char buf[],int command);
-extern int easel_ES920_init(char* PortName);
+extern unsigned int _easel_es920_Hex2dBm(char *str_pwr );
+extern int easel_ES920_init(char* PortName,int iBaudrate);
 extern int SendCommand(char buf[], int command );
 extern int RecvCommandAck(void);
 extern int easel_ES920_SetProcessorMode(char buf[], int command);

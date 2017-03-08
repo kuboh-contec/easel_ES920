@@ -102,7 +102,8 @@ typedef struct __easelES920_param{
 
 //Function
 extern int _easel_es920_send_recv(char buf[],int command);
-extern int easel_ES920_init(char* PortName);
+extern unsigned int _easel_es920_Hex2dBm(char *str_pwr );
+extern int easel_ES920_init(char* PortName,int iBaudrate);
 extern int SendCommand(char buf[], int command );
 extern int RecvCommandAck(void);
 extern int easel_ES920_SetProcessorMode(char buf[], int command);

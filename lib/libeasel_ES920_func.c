@@ -139,18 +139,20 @@ BYTE _conexio_cmm920_dBm2Hex( int dBm ){
 	@param hex :　16進数
 	@return 成功:  dBm
 **/
-/*
-int _conexio_cmm920_Hex2dBm( BYTE hex ){
-	int dBm;
-	dBm = (int) _calc_Hex2Bcd( hex );
-	
-	if( dBm <= 10 ){
-		dBm += 100;
-	}
-	dBm = dBm * (-1);
+
+unsigned int _easel_es920_Hex2dBm(char *str_pwr){
+
+	unsigned int dBm;
+
+	sscanf(str_pwr,"%x",&dBm);
+	//prietf("rx_pwr: %x, %d ",dBm,dBm);
+
+	dBm = ~dBm;
+	dBm = dBm + 0x0001;
+
 	return dBm;
 }
-*/
+
 
 /**
 	@~English
@@ -385,9 +387,9 @@ int easel_ES920_set_outpw(int command)
 	@return 成功:  0 失敗 :  0以外
 **/
 
-int easel_ES920_init(char* PortName){
+int easel_ES920_init(char* PortName,int iBaudrate){
 
-	int iBaudrate = 115200;
+	//int iBaudrate = 115200;
 	int iLength = 8;
 	int iStop = 1;
 	int iParity = 0;
@@ -551,6 +553,7 @@ int SendTelegram(unsigned char *buf)
 	for( count = 0; count < length; count++ ) printf("%02x ",Data[count]);
 	printf("\n");
 	
+	/*
 	gettimeofday(&myTime,NULL);
 	time_st = localtime(&myTime.tv_sec);
 	printf("TIME:%02d:%02d:%02d.%06d\n",
@@ -559,6 +562,7 @@ int SendTelegram(unsigned char *buf)
 				time_st->tm_sec,
 				myTime.tv_usec
 	      );
+	*/
 
 
 	DbgPrint("<SendTelegram> Port %x, ret %d, Data %s\n",param.SerialPort,iRet,Data);
@@ -619,6 +623,8 @@ int RecvTelegram(unsigned char *buf)
 	int readlen = 0;
 	int count;
 	int bef_readlen = 0;
+	char str_pwr[4]={0};
+	unsigned char rx_pwr;
 
 	//get the data length(header + response data) 
 	memset(&Data[0],0x00, 62);
@@ -645,7 +651,7 @@ int RecvTelegram(unsigned char *buf)
 	
 	DbgPrintRecvTelegram("\n");
 
-	gettimeofday(&myTime,NULL);
+	/*gettimeofday(&myTime,NULL);
 	time_st = localtime(&myTime.tv_sec);
 	printf("TIME:%02d:%02d:%02d.%06d\n",
 				time_st->tm_hour,
@@ -653,12 +659,10 @@ int RecvTelegram(unsigned char *buf)
 				time_st->tm_sec,
 				myTime.tv_usec
 	      );
-
+	*/
 
 	//Serial_GetChar(param.SerialPort);
-
 	if(!strcmp(Data,"OK\r\n")) return 0;
-
 	DbgPrintRecvTelegram("DATA:");
 
 	//for(i=0;i<=readlen ;i++) ;
@@ -676,6 +680,7 @@ int RecvTelegram(unsigned char *buf)
 
 		if( count < 4 ){
 			//rx_pwr
+			str_pwr[count] = Data[count];
 		}else if( count < 8 ){
 			// id
 		}else if( count < 12){ 
@@ -684,14 +689,19 @@ int RecvTelegram(unsigned char *buf)
 			buf[count-12] = Data[count];
 		}
 	}
+	
+	//tmp_pwr = atoi(rx_pwr);	
+	//sscanf(str_pwr,"%x",&rx_pwr);
+
 	//memcpy(buf, buf, (readlen-13) * sizeof(unsigned char) );
 
 
 	//printf("\n");
 
 	//buf = strtok(Data,"\r");
-	
-	DbgPrintRecvTelegram("<RecvTelegram>Data%s buf %s\n",Data,buf);
+	rx_pwr = _easel_es920_Hex2dBm(str_pwr);
+	DbgPrintRecvTelegram("<RecvTelegram>Data %s buf %s rx_pwr -%d\n",
+				Data,buf,rx_pwr);
 	
 	//make the area of data length   
 	//length = (int)_calc_Hex2Bcd(head[0]);

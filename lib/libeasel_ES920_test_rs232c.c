@@ -118,6 +118,7 @@ int RecvRS232C(unsigned char *buf)
 	for(i=0;i<readlen;i++) printf("%02x ",buf[i]);
 	printf("\n");
 
+	/*
 	gettimeofday(&myTime,NULL);
 	time_st = localtime(&myTime.tv_sec);
 	printf("TIME:%02d:%02d:%02d.%06d\n",
@@ -126,6 +127,7 @@ int RecvRS232C(unsigned char *buf)
 				time_st->tm_sec,
 				myTime.tv_usec
 	      );
+	*/ 
 
 	//memcpy(buf, buf, (strlen(buf)-2) * sizeof(unsigned char));
 	DbgPrint("<RecvRS232C> Port %d buf %s res %d\n",iPort2,buf,iRet);
@@ -152,11 +154,12 @@ int SendRS232C(unsigned char *buf)
 	iRet = Serial_PutString(iPort2,buf, length * sizeof(unsigned char));
 	if(iRet<0) return -1;
 
-	printf("==========SendRS232C========================\n");
+	DbgPrint("==========SendRS232C========================\n");
 	int i;
 	for(i=0;i<strlen(buf);i++) printf("%02x ",buf[i]);
 	printf("\n");
 		
+	/*
 	gettimeofday(&myTime,NULL);
 	time_st = localtime(&myTime.tv_sec);
 	printf("TIME:%02d:%02d:%02d.%06d\n",
@@ -165,6 +168,7 @@ int SendRS232C(unsigned char *buf)
 				time_st->tm_sec,
 				myTime.tv_usec
 	      );
+	*/
 
 	DbgPrint("<SendRS232C> Port %d  buf %s res %d\n",iPort2,buf,iRet);
 
